@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h> // for perror()
+#include <mm_malloc.h>
 
 #include "mem_pool.h"
 
@@ -35,6 +36,7 @@ static const unsigned   MEM_GAP_IX_EXPAND_FACTOR        = MEM_EXPAND_FACTOR;
 /* Type declarations */
 /*                   */
 /*********************/
+
 typedef struct _node {
     alloc_t alloc_record;
     unsigned used;
@@ -74,17 +76,12 @@ static unsigned pool_store_capacity = 0;
 /* Forward declarations of static functions */
 /*                                          */
 /********************************************/
+
 static alloc_status _mem_resize_pool_store();
 static alloc_status _mem_resize_node_heap(pool_mgr_pt pool_mgr);
 static alloc_status _mem_resize_gap_ix(pool_mgr_pt pool_mgr);
-static alloc_status
-        _mem_add_to_gap_ix(pool_mgr_pt pool_mgr,
-                           size_t size,
-                           node_pt node);
-static alloc_status
-        _mem_remove_from_gap_ix(pool_mgr_pt pool_mgr,
-                                size_t size,
-                                node_pt node);
+static alloc_status _mem_add_to_gap_ix(pool_mgr_pt pool_mgr, size_t size, node_pt node);
+static alloc_status _mem_remove_from_gap_ix(pool_mgr_pt pool_mgr, size_t size, node_pt node);
 static alloc_status _mem_sort_gap_ix(pool_mgr_pt pool_mgr);
 
 
@@ -96,23 +93,68 @@ static alloc_status _mem_sort_gap_ix(pool_mgr_pt pool_mgr);
 /****************************************/
 alloc_status mem_init() {
     // ensure that it's called only once until mem_free
-    // allocate the pool store with initial capacity
     // note: holds pointers only, other functions to allocate/deallocate
 
-    return ALLOC_FAIL;
+    // Checking if mem_init() hasn't already been called.
+    if (pool_store != NULL) {
+        printf("ALLOC_CALLED_AGAIN\n");
+        return ALLOC_CALLED_AGAIN;
+    }
+
+    // Checking if pool hasn't been initialized. If it hasn't, then initialize it.
+    else if (pool_store == NULL){
+        // allocate the pool store with initial capacity
+        // Setting the pool_store to allocate (mem pool store init capacity) and size of the pool manager struct
+        pool_store = (pool_mgr_pt*) calloc(MEM_POOL_STORE_INIT_CAPACITY, sizeof(pool_mgr_t));
+        pool_store_capacity = MEM_POOL_STORE_INIT_CAPACITY;
+        pool_store_size = 0;
+
+        printf("ALLOC_OK\n");
+        return ALLOC_OK;
+    }
+
+    else
+        printf("ALLOC_FAIL\n");
+        return ALLOC_FAIL;
+
 }
 
 alloc_status mem_free() {
     // ensure that it's called only once for each mem_init
-    // make sure all pool managers have been deallocated
+    // make sure all pool managers have been de-allocated
     // can free the pool store array
     // update static variables
 
-    return ALLOC_FAIL;
+    if(pool_store == NULL) {
+        printf("ALLOC_CALLED_AGAIN\n");
+        return ALLOC_CALLED_AGAIN;
+    }
+
+    else if(pool_store != NULL) {
+
+        for (unsigned int i = 0; i < pool_store_size; i++) {
+            mem_pool_close(&pool_store[i]);
+            //mem_pool_close((pool_pt) pool_store[i]);
+        }
+
+        // Freeing pool_store memory and resetting pool_store, it's size and capacity to original states.
+        free(pool_store);
+        pool_store = NULL; // an array of pointers, only expand
+        pool_store_size = 0;
+        pool_store_capacity = 0;
+
+        printf("ALLOC_OK\n");
+        return ALLOC_OK;
+    }
+
+    else
+        printf("ALLOC_FAIL\n");
+        return ALLOC_FAIL;
+
 }
 
 pool_pt mem_pool_open(size_t size, alloc_policy policy) {
-    // make sure there the pool store is allocated
+    // make sure that the pool store is allocated
     // expand the pool store, if necessary
     // allocate a new mem pool mgr
     // check success, on error return null
@@ -128,6 +170,19 @@ pool_pt mem_pool_open(size_t size, alloc_policy policy) {
     //   initialize pool mgr
     //   link pool mgr to pool store
     // return the address of the mgr, cast to (pool_pt)
+
+    if(pool_store == NULL){
+        printf("pool store is NULL\n");
+
+        // Return NULL or ALLOC_FAIL???
+        return NULL;
+    }
+
+    // if pool_store_size divided by pool_store_capacity is greater than 75 percent.....
+    if(_mem_resize_pool_store() != ALLOC_OK) {
+        return NULL;
+    }
+
 
     return NULL;
 }
@@ -250,13 +305,16 @@ void mem_inspect_pool(pool_pt pool,
 /***********************************/
 static alloc_status _mem_resize_pool_store() {
     // check if necessary
-    /*
-                if (((float) pool_store_size / pool_store_capacity)
-                    > MEM_POOL_STORE_FILL_FACTOR) {...}
-     */
     // don't forget to update capacity variables
 
-    return ALLOC_FAIL;
+    if (((float) pool_store_size / pool_store_capacity) > MEM_POOL_STORE_FILL_FACTOR) {
+
+        pool_store_capacity = pool_store_capacity * MEM_POOL_STORE_EXPAND_FACTOR;
+        pool_store = realloc(pool_store, sizeof(struct _pool) * MEM_POOL_STORE_EXPAND_FACTOR);]
+        return ALLOC_OK;
+    }
+    else
+        return ALLOC_FAIL;
 }
 
 static alloc_status _mem_resize_node_heap(pool_mgr_pt pool_mgr) {

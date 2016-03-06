@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
      * 3. Allocate 1000. That will be underneath it. The rest is a gap.
      * 4. Deallocate the 100 allocation. Now gaps on both sides of 1000.
      * 4. Deallocate the 1000 allocation. Pool is again one single gap.
+     *
      */
 
 
