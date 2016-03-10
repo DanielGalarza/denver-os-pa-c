@@ -105,7 +105,7 @@ alloc_status mem_init() {
     else if (pool_store == NULL){
         // allocate the pool store with initial capacity
         // Setting the pool_store to allocate (mem pool store init capacity) and size of the pool manager struct
-        pool_store = (pool_mgr_pt*) calloc(MEM_POOL_STORE_INIT_CAPACITY, sizeof(pool_mgr_t));
+        pool_store = calloc(MEM_POOL_STORE_INIT_CAPACITY, sizeof(pool_mgr_pt)); //sizeof(pool_mgr_pt) OR  sizeof(pool_mgr_t)??
         pool_store_capacity = MEM_POOL_STORE_INIT_CAPACITY;
         pool_store_size = 0;
 
@@ -133,8 +133,8 @@ alloc_status mem_free() {
     else if(pool_store != NULL) {
 
         for (unsigned int i = 0; i < pool_store_size; i++) {
-            mem_pool_close(&pool_store[i]);
-            //mem_pool_close((pool_pt) pool_store[i]);
+            //mem_pool_close(&pool_store[i]);
+            mem_pool_close((pool_pt) pool_store[i]);
         }
 
         // Freeing pool_store memory and resetting pool_store, it's size and capacity to original states.
@@ -173,16 +173,14 @@ pool_pt mem_pool_open(size_t size, alloc_policy policy) {
 
     if(pool_store == NULL){
         printf("pool store is NULL\n");
-
-        // Return NULL or ALLOC_FAIL???
         return NULL;
     }
 
     // if pool_store_size divided by pool_store_capacity is greater than 75 percent.....
     if(_mem_resize_pool_store() != ALLOC_OK) {
+        printf("ALLOC_OK");
         return NULL;
     }
-
 
     return NULL;
 }
@@ -309,8 +307,8 @@ static alloc_status _mem_resize_pool_store() {
 
     if (((float) pool_store_size / pool_store_capacity) > MEM_POOL_STORE_FILL_FACTOR) {
 
-        pool_store_capacity = pool_store_capacity * MEM_POOL_STORE_EXPAND_FACTOR;
-        pool_store = realloc(pool_store, sizeof(struct _pool) * MEM_POOL_STORE_EXPAND_FACTOR);]
+        //pool_store_capacity *= MEM_POOL_STORE_EXPAND_FACTOR;
+        pool_store = realloc(pool_store, sizeof(struct _pool) * MEM_POOL_STORE_EXPAND_FACTOR);
         return ALLOC_OK;
     }
     else
