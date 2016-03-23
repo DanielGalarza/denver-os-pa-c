@@ -137,6 +137,7 @@ static void test_pool_store_smoketest(void **state) {
     alloc_status status;
 
     for (int i=0; i<NUM_TEST_ITERATIONS; i++) {
+
         INFO("Initializing pool store\n");
         status = mem_init();
         assert_int_equal(status, ALLOC_OK);
@@ -150,6 +151,7 @@ static void test_pool_store_smoketest(void **state) {
 
         status = mem_free();
         assert_int_equal(status, ALLOC_CALLED_AGAIN);
+
     }
 }
 
@@ -189,7 +191,7 @@ static void test_pool_smoketest(void **state) {
         assert_int_equal(status, ALLOC_OK);
     }
 }
-
+ 
 static void test_pool_nonempty(void **state) {
     (void) state; /* unused */
 
