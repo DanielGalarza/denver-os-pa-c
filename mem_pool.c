@@ -112,15 +112,10 @@ alloc_status mem_init() {
         pool_store_size = 0;
 
         //printf("ALLOC_OK\n");
-        return ALLOC_OK;
     }
+    return ALLOC_OK;
 
-    return ALLOC_FAIL;
 }
-
-    /*else
-        //printf("ALLOC_FAIL\n");
-        return ALLOC_FAIL; */
 
 
 alloc_status mem_free() {
@@ -149,12 +144,10 @@ alloc_status mem_free() {
         pool_store_capacity = 0;
 
         //printf("ALLOC_OK\n");
-        return ALLOC_OK;
     }
 
-    else
-        //printf("ALLOC_FAIL\n");
-        return ALLOC_FAIL;
+    return ALLOC_OK;
+
 }
 
 pool_pt mem_pool_open(size_t size, alloc_policy policy) {
