@@ -101,7 +101,7 @@ alloc_status mem_init() {
     if (pool_store == NULL) {
         // allocate the pool store with initial capacity
         // Setting the pool_store to allocate (mem pool store init capacity) and size of the pool manager struct
-        pool_store = calloc(MEM_POOL_STORE_INIT_CAPACITY,
+        pool_store = (pool_mgr_pt*) calloc(MEM_POOL_STORE_INIT_CAPACITY,
                             sizeof(pool_mgr_pt)); //sizeof(pool_mgr_pt) OR  sizeof(pool_mgr_t)??
 
         pool_store_capacity = MEM_POOL_STORE_INIT_CAPACITY;
@@ -185,13 +185,13 @@ pool_pt mem_pool_open(size_t size, alloc_policy policy) {
     pool_mgr->pool.num_gaps = 1;
 
     // check success, on error deallocate mgr and return null
-    if((&pool_mgr->pool) == NULL){
+    if(&pool_mgr->pool == NULL){
         free(pool_mgr);
         return NULL;
     }
 
     // allocate a new node heap
-    pool_mgr->node_heap = calloc(MEM_NODE_HEAP_INIT_CAPACITY, sizeof(node_t));
+    pool_mgr->node_heap = (node_pt) calloc(MEM_NODE_HEAP_INIT_CAPACITY, sizeof(node_t));
 
     // check success, on error deallocate mgr/pool and return null
     if(pool_mgr->node_heap == NULL){
@@ -202,34 +202,36 @@ pool_pt mem_pool_open(size_t size, alloc_policy policy) {
     }
 
     // allocate a new gap index
-    pool_mgr->gap_ix = calloc(MEM_GAP_IX_INIT_CAPACITY, sizeof(gap_t)); //might need to cast with (gap_t)
+    pool_mgr->gap_ix = (gap_pt) calloc(MEM_GAP_IX_INIT_CAPACITY, sizeof(gap_t)); //might need to cast with (gap_t)
 
     // check success, on error deallocate mgr/pool/heap and return null
     if(pool_mgr->gap_ix == NULL){
+
         free(&pool_mgr->pool);
         free(pool_mgr->node_heap);
         free(pool_mgr);
+
         return NULL;
     }
 
 
     //node heap
-    node_pt n_h = pool_mgr->node_heap;
+    //node_pt n_h = pool_mgr->node_heap;
 
     // assign all the pointers and update meta data:
     //   initialize top node of node heap
-    n_h->alloc_record.size = size;
-    n_h->alloc_record.mem = pool_mgr->pool.mem;
-    n_h->used = 1;
-    n_h->allocated = 0;
-    n_h->next = NULL;
-    n_h->prev = NULL;
+    pool_mgr->node_heap->alloc_record.size = size;
+    pool_mgr->node_heap->alloc_record.mem = pool_mgr->pool.mem;
+    pool_mgr->node_heap->used = 1;
+    pool_mgr->node_heap->allocated = 0;
+    pool_mgr->node_heap->next = NULL;
+    pool_mgr->node_heap->prev = NULL;
 
 
     //   initialize top node of gap index
     //   initialize pool mgr
     pool_mgr->gap_ix[0].size = size;
-    pool_mgr->gap_ix[0].node = n_h;
+    pool_mgr->gap_ix[0].node = pool_mgr->node_heap;
     pool_mgr->gap_ix_capacity = MEM_GAP_IX_INIT_CAPACITY;
     pool_mgr->total_nodes = MEM_NODE_HEAP_INIT_CAPACITY;
     pool_mgr->used_nodes = 1;
@@ -251,7 +253,7 @@ alloc_status mem_pool_close(pool_pt pool) {
     pool_mgr_pt pool_mgr = (pool_mgr_pt) pool;
 
     // check if this pool is allocated  OR  check if pool has only one gap  OR  check if it has zero allocations
-    if(pool != NULL || !pool->num_gaps ==1 || !pool->num_gaps == 0) {
+    if(pool == NULL || (!pool->num_gaps ==1) || (!pool->num_gaps == 0)) {
         return ALLOC_NOT_FREED;
     }
 
@@ -382,7 +384,6 @@ alloc_pt mem_new_alloc(pool_pt pool, size_t size) {
         if (node->next != NULL)
             node->next->prev = un_node;
 
-
         node->next = un_node;
 
         // add to gap index
@@ -413,8 +414,9 @@ alloc_status mem_del_alloc(pool_pt pool, alloc_pt alloc) {
 
         if (&pool_mgr->node_heap[i] == node) {
             del_node = i;
-            i = pool_mgr->total_nodes;
+            break;
         }
+        i++;
     }
 
     // this is node-to-delete
@@ -633,17 +635,15 @@ static alloc_status _mem_add_to_gap_ix(pool_mgr_pt pool_mgr, size_t size, node_p
 static alloc_status _mem_remove_from_gap_ix(pool_mgr_pt pool_mgr, size_t size, node_pt node) {
 
     // find the position of the node in the gap index
-    int i = 0;
     int node_index = -1;
-    while(pool_mgr->gap_ix_capacity) {
+    for (int i = 0; i < pool_mgr->gap_ix_capacity; i++){
 
         if (pool_mgr->gap_ix[i].node == node){
-            node_index = i;
-            break;
-        }
-        i++;
-    }
 
+            node_index = i;
+            i = pool_mgr->gap_ix_capacity;
+        }
+    }
 
     // loop from there to the end of the array:
     int j = 0;
