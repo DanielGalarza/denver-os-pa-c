@@ -96,13 +96,9 @@ alloc_status mem_init() {
     // note: holds pointers only, other functions to allocate/deallocate
 
     // Checking if mem_init() hasn't already been called.
-    if (pool_store != NULL) {
-        //printf("ALLOC_CALLED_AGAIN\n");
-        return ALLOC_CALLED_AGAIN;
-    }
 
         // Checking if pool hasn't been initialized. If it hasn't, then initialize it.
-    else if (pool_store == NULL) {
+    if (pool_store == NULL) {
         // allocate the pool store with initial capacity
         // Setting the pool_store to allocate (mem pool store init capacity) and size of the pool manager struct
         pool_store = calloc(MEM_POOL_STORE_INIT_CAPACITY,
@@ -112,8 +108,11 @@ alloc_status mem_init() {
         pool_store_size = 0;
 
         //printf("ALLOC_OK\n");
+        return ALLOC_OK;
     }
-    return ALLOC_OK;
+
+    else
+        return ALLOC_CALLED_AGAIN;
 
 }
 
@@ -129,25 +128,24 @@ alloc_status mem_free() {
         return ALLOC_CALLED_AGAIN;
     }
 
-    else if(pool_store != NULL) {
-
-        for(int i = 0; i < pool_store_size; i++) {
-            if(!pool_store[i])
-                return ALLOC_FAIL;
+    int i = 0;
+    while(i<pool_store_size) {
+        if (pool_store[i] != NULL) {
+            return ALLOC_FAIL;
         }
-
-        // Freeing pool_store memory and resetting pool_store, it's size and capacity to original states.
-        free(pool_store);
-
-        pool_store = NULL; // an array of pointers, only expand
-        pool_store_size = 0;
-        pool_store_capacity = 0;
-
-        //printf("ALLOC_OK\n");
+        i++;
     }
 
-    return ALLOC_OK;
+    // Freeing pool_store memory and resetting pool_store, it's size and capacity to original states.
+    free(pool_store);
 
+    pool_store = NULL; // an array of pointers, only expand
+    pool_store_size = 0;
+    pool_store_capacity = 0;
+
+    //printf("ALLOC_OK\n");
+
+    return ALLOC_OK;
 }
 
 pool_pt mem_pool_open(size_t size, alloc_policy policy) {
@@ -176,19 +174,30 @@ pool_pt mem_pool_open(size_t size, alloc_policy policy) {
     }
 
     //Generic variable to shorten code.
-    pool_t p_m = pool_mgr->pool;
+    //pool_t p_m = pool_mgr->pool;
 
     // allocate a new memory pool
-    p_m.mem = (char*) calloc(size, sizeof(char));
-    p_m.policy = policy;
-    p_m.total_size = size;
-    p_m.alloc_size = 0;
-    p_m.num_allocs = 0;
-    p_m.num_gaps = 1;
+    pool_mgr->pool.mem = (char*) calloc(size, sizeof(char));
+    pool_mgr->pool.policy = policy;
+    pool_mgr->pool.total_size = size;
+    pool_mgr->pool.alloc_size = 0;
+    pool_mgr->pool.num_allocs = 0;
+    pool_mgr->pool.num_gaps = 1;
 
     // check success, on error deallocate mgr and return null
     if((&pool_mgr->pool) == NULL){
         free(pool_mgr);
+        return NULL;
+    }
+
+    // allocate a new node heap
+    pool_mgr->node_heap = calloc(MEM_NODE_HEAP_INIT_CAPACITY, sizeof(node_t));
+
+    // check success, on error deallocate mgr/pool and return null
+    if(pool_mgr->node_heap == NULL){
+
+        free(pool_mgr);
+        free(&pool_mgr->pool);
         return NULL;
     }
 
@@ -204,7 +213,7 @@ pool_pt mem_pool_open(size_t size, alloc_policy policy) {
     }
 
 
-    //node hea[
+    //node heap
     node_pt n_h = pool_mgr->node_heap;
 
     // assign all the pointers and update meta data:
@@ -247,12 +256,10 @@ alloc_status mem_pool_close(pool_pt pool) {
     }
 
     // free memory pool
-    free(pool->mem);
-
     // free node heap
-    free(pool_mgr->node_heap);
-
     // free gap index
+    free(pool->mem);
+    free(pool_mgr->node_heap);
     free(pool_mgr->gap_ix);
 
     // find mgr in pool store and set to null
@@ -268,7 +275,6 @@ alloc_status mem_pool_close(pool_pt pool) {
     // note: don't decrement pool_store_size, because it only grows
     // free mgr
     free(pool_mgr);
-
     return ALLOC_OK;
 }
 
@@ -369,9 +375,7 @@ alloc_pt mem_new_alloc(pool_pt pool, size_t size) {
 
         //update metadata
         pool_mgr->used_nodes += 1;
-
-        // update linked list (new node right after the node for allocation)
-        un_node->prev = node;
+        un_node->prev = node;         // update linked list (new node right after the node for allocation)
         un_node->next = node->next;
 
         //if next node is not null...

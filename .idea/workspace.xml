@@ -12,8 +12,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8fbee4fd-13f1-4764-aa7e-f72ac5d78239" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/denver-os-pa-c.iml" afterPath="$PROJECT_DIR$/.idea/denver-os-pa-c.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mem_pool.c" afterPath="$PROJECT_DIR$/mem_pool.c" />
     </list>
     <ignored path="denver-os-pa-c.iws" />
@@ -58,8 +56,8 @@
       <file leaf-file-name="mem_pool.c" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/mem_pool.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0858209">
-              <caret line="652" column="0" selection-start-line="652" selection-start-column="0" selection-end-line="652" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.2244389">
+              <caret line="387" column="27" selection-start-line="387" selection-start-column="27" selection-end-line="387" selection-end-column="27" />
               <folding>
                 <element signature="e#46#65#0" expanded="true" />
               </folding>
@@ -119,8 +117,8 @@
     <detection-done>true</detection-done>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="669" />
-    <option name="width" value="771" />
+    <option name="x" value="666" />
+    <option name="width" value="774" />
     <option name="height" value="900" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
@@ -229,7 +227,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="669" y="0" width="771" height="900" extended-state="6" />
+    <frame x="666" y="0" width="774" height="900" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -290,11 +288,6 @@
           <url>file://$PROJECT_DIR$/test_suite.c</url>
           <line>221</line>
           <option name="timeStamp" value="4" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/mem_pool.c</url>
-          <line>134</line>
-          <option name="timeStamp" value="6" />
         </line-breakpoint>
       </breakpoints>
       <option name="time" value="7" />
@@ -705,8 +698,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/mem_pool.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0858209">
-          <caret line="652" column="0" selection-start-line="652" selection-start-column="0" selection-end-line="652" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.2244389">
+          <caret line="387" column="27" selection-start-line="387" selection-start-column="27" selection-end-line="387" selection-end-column="27" />
           <folding>
             <element signature="e#46#65#0" expanded="true" />
           </folding>
